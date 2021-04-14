@@ -1,0 +1,53 @@
+---
+# tasks file for apache
+
+- debug:
+   msg: "{{ ansible_os_family }}"
+
+- name: Install httpd package for centos
+  yum:
+   name: "{{ item }}"
+   state: present
+  loop:
+   - httpd
+   - firewalld
+  when: ansible_os_family == "RedHat"
+
+- name: restart httpd service
+  service: 
+   name: httpd
+   state: started
+   enabled: yes
+  when: ansible_os_family == "RedHat"
+
+
+- name: Open port 80 for http access
+  firewalld:
+   service: http
+   permanent: yes
+   state: enabled
+  when: ansible_os_family == "RedHat"
+
+- name: Restart the firewalld service to load in the firewall changes
+  service: 
+   name: firewalld 
+   state: restarted
+  when: ansible_os_family == "RedHat"
+
+
+- name: Install Apache Server for Ubuntu
+  apt:
+   name: apache2
+   update_cache: yes
+   state: satest
+  when: ansible_os_family == "Debian"
+
+- name: enabled mod_rewrite
+  apache2_module: 
+   name: rewrite 
+   state: present
+   notify:
+    - restart apache2
+  when: ansible_os_family == "Debian"
+
+
